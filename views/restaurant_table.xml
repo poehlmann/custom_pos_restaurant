@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="custom_pos_restaurant_table_view">
+            <field name="name">custom.pos.restaurant.table.view</field>
+            <field name="model">restaurant.table</field>
+            <field name="inherit_id" ref="pos_restaurant.view_restaurant_table_form" />
+            <field name="arch" type="xml">
+                <xpath expr="//group[2]" position="after">
+                    <group col="4" string="Custom Features">
+                        <field name="default_product_id" required="1" options="{'no_create': True}"
+                               domain="[('type','=','service')]"/>
+                        <field name="additional_product_id" required="1" options="{'no_create': True}"
+                               domain="[('type','=','service')]"/>
+                        <field name="wait_time" required="1"/>
+                        <field name="extra_time" required="1"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</openerp>

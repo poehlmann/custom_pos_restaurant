@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<openerp>
+    <data>
+        <template id="point_of_sale.custom_pos_restaurant" inherit_id="point_of_sale.assets" name="Custom POS Restaurant
+        assets">
+            <xpath expr="." position="inside">
+                <script src="/custom_pos_restaurant/static/src/js/floors.js" type="text/javascript"/>
+            </xpath>
+        </template>
+    </data>
+</openerp>
