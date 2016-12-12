@@ -138,21 +138,28 @@ odoo.define('custom_pos_restaurant.floors', function(require){
                 extra_time = table.extra_time;
 
             var extra_minutes = Math.abs(minutes_apart - wait_time);
+
             var extra_product_qty = Math.ceil(extra_minutes / extra_time);
+
             var extra_product_id = this.get_extra_product_id_for_table();
+
             var orderExtra;
             //validar el update order
             var list_products = order.orderlines.models;
+            var quantity=0;
+
             for(var product in list_products){
                 if(list_products[product].product.id == extra_product_id){
                     orderExtra = list_products[product];
+                    quantity += list_products[product].quantity;
                 }
             }
+
             if(orderExtra){
-                if(orderExtra.quantity == extra_product_qty) {
+                if(quantity == extra_product_qty) {
                     return false;
                 }else{
-                    extra_product_qty =extra_product_qty- orderExtra.quantity;
+                    extra_product_qty =extra_product_qty- quantity;
                 }
             }
             this.add_extra_product_to_current_order(extra_product_qty);
