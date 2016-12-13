@@ -28,31 +28,72 @@ odoo.define('custom_pos_restaurant.floors', function(require){
 
     var _super_posmodel = models.PosModel.prototype;
     models.PosModel = models.PosModel.extend({
+        
+        initialize: function(session, attributes) {
+            this.change_table = false;
+            this.previous_order_id= false;
+            return _super_posmodel.initialize.call(this,session,attributes);
+        },
+
         // Overwritten methods
         set_table: function(table) {
+
+            if (this.change_table) {
+
+                if (!table) { // no table ? go back to the floor plan, see ScreenSelector
+                    this.set_order(null);
+                } else {     // table ? load the associated orders  ...
+                    this.table.color = "rgb(130, 233, 171)";
+                    //hacer cambios con la anterior mesa para ponerlas a la nueva mesa
+                    var change = localStorage.getItem("'"+this.table.name+"'");
+                    localStorage.removeItem("'"+this.table.name+"'");
+                    localStorage.setItem("'"+ table.name +"'",change);
+                    ////////////////////////////////////////////
+                    this.table = table;
+                    var orders = this.get_order_list();
+                    if (orders.length) {
+                        this.set_order(orders[0]); // and go to the first one ...
+                        this.updateTimer();
+                        //this.pos.updateTimer_Order();
+                    } else {
+                        this.add_new_order();  // or create a new order with the current table
+                        // Segundos.innerHTML = ":00";
+                        Minutos.innerHTML = ":00";
+                        Horas.innerHTML = "00";
+                    }
+                }
+            }
+
+            else{
+                _super_posmodel.set_table.apply(this,arguments);
+            }
+
+
+
             if (!table) { // no table ? go back to the floor plan, see ScreenSelector
                 this.set_order(null);
-            } else {     // table ? load the associated orders  ...
+            }
+            else {
+                if(this.change_table){
+                    this.previous_order_id.table = table;
+                    this.change_table = false;
+                }
+                // table ? load the associated orders  ...
                 this.table = table;
-
                 var orders = this.get_order_list();
-
                 if (orders.length) {
                     this.set_order(orders[0]); // and go to the first one ...
-                    this.updateTimer();
-                    //this.pos.updateTimer_Order();
-                }else {
+                } else {
                     this.add_new_order();  // or create a new order with the current table
 
                     var order = this.get_order();
                     var table = order.table;
                     localStorage.setItem("'"+ table.name +"'", order.creation_date);
-
                     this.change_color_of_table();
-                    // Segundos.innerHTML = ":00";
                     Minutos.innerHTML = ":00";
                     Horas.innerHTML = "00";
                 }
+
             }
         },
         updateTimer : function(){
@@ -82,15 +123,14 @@ odoo.define('custom_pos_restaurant.floors', function(require){
             Horas.innerHTML = hours;
 
         },
-        change_color_of_table: function(){
+        change_color_of_table: function() {
             var order = this.get_order();
             var table = order.table;
-            if (order.get_orderlines().length > 0){
+            if (order.get_orderlines().length > 0) {
                 table.color = "rgb(235, 109, 109)"; // Fixme: client side change doesn't storage in the database
             } else {
                 table.color = "rgb(130, 233, 171)";
             }
-
         },
         add_new_order: function () {
             _super_posmodel.add_new_order.call(this);
