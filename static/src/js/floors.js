@@ -56,7 +56,7 @@ odoo.define('custom_pos_restaurant.floors', function(require){
                         this.updateTimer();
                         //this.pos.updateTimer_Order();
                     } else {
-                        this.add_new_order();  // or create a new order with the current table
+                        //this.add_new_order();  // or create a new order with the current table
                         // Segundos.innerHTML = ":00";
                         Minutos.innerHTML = ":00";
                         Horas.innerHTML = "00";
