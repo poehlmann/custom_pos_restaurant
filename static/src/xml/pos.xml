@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
+  <t t-name="TableAddCoupleButton">
+     <div class='control-button'>
+         Agregar Pareja
+     </div>
+  </t>
   <t t-name="TableUpdateOrderButton">
       <div class='control-button'>
          Calcular Total

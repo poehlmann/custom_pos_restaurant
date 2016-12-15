@@ -7,13 +7,23 @@
             <field name="inherit_id" ref="pos_restaurant.view_restaurant_table_form" />
             <field name="arch" type="xml">
                 <xpath expr="//group[2]" position="after">
-                    <group col="4" string="Custom Features">
+                    <group col="4" string="Edicion Habitacion">
                         <field name="default_product_id" required="1" options="{'no_create': True}"
                                domain="[('type','=','service')]"/>
                         <field name="additional_product_id" required="1" options="{'no_create': True}"
                                domain="[('type','=','service')]"/>
                         <field name="wait_time" required="1"/>
                         <field name="extra_time" required="1"/>
+                    </group>
+                </xpath>
+                <xpath expr="//group[2]" position="after">
+                    <group col="4" string="Edicion Habitacion - Pareja Extra">
+                        <field name="default_couple_product_id" required="1" options="{'no_create': True}"
+                               domain="[('type','=','service')]"/>
+                        <field name="additional_couple_product_id" required="1" options="{'no_create': True}"
+                               domain="[('type','=','service')]"/>
+                        <field name="wait_time_couple" required="1"/>
+                        <field name="extra_time_couple" required="1"/>
                     </group>
                 </xpath>
             </field>
