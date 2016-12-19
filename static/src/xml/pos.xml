@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
+    <t t-name="TableClockStart">
+      <div class='control-button' style="width:100%; display: -webkit-inline-box;">
+          <label>Entrada:</label>
+        <div class="clock" id="clockStart"></div>
+      </div>
+  </t>
   <t t-name="TableAddCoupleButton">
      <div class='control-button'>
          Agregar Pareja
@@ -10,13 +16,10 @@
          Calcular Total
       </div>
   </t>
-    <t t-name="TableUpdateTimeButton">
+  <t t-name="TableUpdateTimeButton">
       <div class='control-button' style="display: -webkit-inline-box;">
-          <!--<p id="update_date"></p>-->
         <div class="reloj" id="Horas">00</div>
-		<div class="reloj" id="Minutos">:00</div>
-		<!--<div class="reloj" id="Segundos">:00</div>-->
-		<!--<div class="reloj" id="Centesimas">:00</div>-->
+        <div class="reloj" id="Minutos">:00</div>
       </div>
   </t>
 </templates>
