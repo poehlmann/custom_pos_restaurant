@@ -43,7 +43,7 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                         this.set_order(null);
                     } else {
                         var room_empty;
-                        if(table.color == "rgb(53,211,116)" || table.color == "rgb(130,233,171)"){
+                        if(table.color !== "rgb(235, 109, 109)"){
                             room_empty = true;
                         }else{
                             room_empty=false;
@@ -282,7 +282,9 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                 return defaultProductId[0];
             }
             return false;
-        }, get_default_couple_product_id_for_table: function () {
+        },
+
+        get_default_couple_product_id_for_table: function () {
             var order = this.get_order(),
                 table = order.table;
             var defaultProductId = table.default_couple_product_id;
@@ -373,11 +375,21 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                 this.pos.calculate_extra_product(minutes_apart);
             }
             //for extra couple
-            var added_couple = new Date(localStorage.getItem("'" + table.name + "-ParejaExtra'"));
-            var difference_x_couple = Math.abs(now - added_couple);
-            var minutes_apart_x_couple = Math.floor((difference_x_couple / 1000) / 60);
-            if (minutes_apart_x_couple > table.wait_time_couple) {
-                this.pos.calculate_extra_product_couple(minutes_apart_x_couple);
+            var list_products = order.orderlines.models;
+            var order_couple=false;
+            var default_product_id = this.pos.get_default_couple_product_id_for_table();
+            for (var product in list_products) {
+                if (list_products[product].product.id == default_product_id) {
+                    order_couple = list_products[product];
+                }
+            }
+            if(order_couple) {
+                var added_couple = new Date(localStorage.getItem("'" + table.name + "-ParejaExtra'"));
+                var difference_x_couple = Math.abs(now - added_couple);
+                var minutes_apart_x_couple = Math.floor((difference_x_couple / 1000) / 60);
+                if (minutes_apart_x_couple > table.wait_time_couple) {
+                    this.pos.calculate_extra_product_couple(minutes_apart_x_couple);
+                }
             }
         }
     });
