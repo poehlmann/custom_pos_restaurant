@@ -32,6 +32,7 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
 
         initialize: function (session, attributes) {
             this.change_table = false;
+            this.previous_order =false;
             this.previous_order_id = false;
             return _super_posmodel.initialize.call(this, session, attributes);
         },
@@ -94,21 +95,26 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                 }
                 // table ? load the associated orders  ...
                 this.table = table;
+                var date;
                 var orders = this.get_order_list();
                 if (orders.length) {
                     this.set_order(orders[0]); // and go to the first one ...
 
-                    var date = new Date(localStorage.getItem("'" + table.name + "'"));
+                     date = new Date(localStorage.getItem("'" + table.name + "'"));
                     clockStart.innerHTML= date.getHours() + ':' + date.getMinutes() + ' - ' + date.getDate() + '/' + (date.getMonth()+1) + '/' + date.getYear();
 
                 } else {
                     this.add_new_order();  // or create a new order with the current table
 
                     var order = this.get_order();
-                    var table = order.table;
-                    localStorage.setItem("'" + table.name + "'", order.creation_date);
-                    var date = new Date(localStorage.getItem("'" + table.name + "'"));
-                    clockStart.innerHTML= date.getHours() + ':' + date.getMinutes() + ' - ' + date.getDate() + '/' + (date.getMonth()+1) + '/' + date.getYear();
+                    var tables = order.table;
+                    localStorage.setItem("'" + tables.name + "'", order.creation_date);
+                      date = new Date(localStorage.getItem("'" + tables.name + "'"));
+
+                    var create_hours = (date.getHours() < 10) ? "0" + date.getHours() : date.getHours();
+                    var create_minutes = (date.getMinutes() < 10) ? "0" + date.getMinutes() : date.getMinutes();
+
+                    clockStart.innerHTML= create_hours + ':' + create_minutes + ' - ' + date.getDate() + '/' + (date.getMonth()+1) + '/' + date.getYear();
 
                     this.change_color_of_table();
                     Minutos.innerHTML = ":00";
@@ -125,10 +131,8 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
 
             var one_day=1000*60*60*24;
 
-            console.log("actual_hour",actual_hour.getTime());
             var creation_hour = new Date(localStorage.getItem("'" + table.name + "'"));// Start of 2010.
 
-            console.log("creation_hour",creation_hour.getTime());
             var time_room = (actual_hour.getTime() - creation_hour.getTime()); // Difference in milliseconds.
             //tiempo en milisegundos
             var time = parseInt((time_room) / 1000);
@@ -140,9 +144,6 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                 , hours = parseInt((time_room / (1000 * 60 * 60)) % 24);
             //verifica la cantidad de dias
             var days = Math.round(time_room/one_day);
-            console.log("days",days);
-            console.log("hour",hours);
-            console.log("minutes",minutes);
             hours = (hours < 10) ? "0" + hours : hours;
             hours = (days>0) ? 24*days : 0 ;
              minutes = (minutes < 10) ? "0" + minutes : minutes;
@@ -248,9 +249,7 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
             var order = this.get_order(),
                 table = order.table,
                 wait_time = table.wait_time,
-                extra_time = table.extra_time,
-                wait_time_couple = table.wait_time_couple,
-                extra_time_couple = table.extra_time_couple;
+                extra_time = table.extra_time;
 
             var extra_minutes = Math.abs(minutes_apart - wait_time);
             var extra_product_qty = Math.ceil(extra_minutes / extra_time);
@@ -262,7 +261,40 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
             var list_products = order.orderlines.models;
             var quantity = 0;
             var modifyQuantityProduct = 0;
-            for (var product in list_products) {
+            var modifyQuantityProduct_new = 0;
+            var product;
+            console.log("this.previous_order",this.previous_order);
+            if(this.previous_order)
+            {
+                for (product in list_products) {
+                    if (list_products[product].product.id == this.previous_order) {
+                        //orderExtra = list_products[product];
+                        quantity += list_products[product].quantity;
+                        console.log("quantitty", quantity);
+                    }
+                }
+                if (quantity == extra_product_qty) {
+                    return false;
+                }else{
+                    for (product in list_products)
+                    {
+                        var quantity_new = 0;
+                        if (list_products[product].product.id == extra_product_id) {
+                            orderExtra = list_products[product];
+                            quantity_new += list_products[product].quantity;
+                        }
+                    }
+                    if (orderExtra) {
+                        modifyQuantityProduct_new = extra_product_qty - quantity - quantity_new;
+                        console.log("modifyQuantityProduct_new", modifyQuantityProduct_new);
+                    } else {
+                        modifyQuantityProduct_new = extra_product_qty - quantity;
+                    }
+                }
+
+            }
+
+            for (product in list_products) {
                 if (list_products[product].product.id == extra_product_id) {
                     orderExtra = list_products[product];
                     quantity += list_products[product].quantity;
@@ -278,8 +310,13 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                     this.modify_extra_product_to_current_order(modifyQuantityProduct,orderExtra);
                 }
             }else {
-                this.add_extra_product_to_current_order(extra_product_qty,orderExtra);
+                if(this.previous_order)
+                    this.add_extra_product_to_current_order(modifyQuantityProduct_new,orderExtra);
+                else
+                    this.add_extra_product_to_current_order(extra_product_qty,orderExtra);
             }
+            //this.previous_order=false;
+            //console.log("lo borro",this.previous_order);
         },
         modify_extra_product_to_current_order : function(extra_product_qty,orderExtra){
             orderExtra.set_quantity(extra_product_qty);
