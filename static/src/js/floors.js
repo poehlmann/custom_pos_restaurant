@@ -123,8 +123,13 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
             //diferencia entra la actual y la creada para obtener el tiempo transcurrido
             var actual_hour = new Date(); // Current date now.
 
+            var one_day=1000*60*60*24;
+
+            console.log("actual_hour",actual_hour.getTime());
             var creation_hour = new Date(localStorage.getItem("'" + table.name + "'"));// Start of 2010.
-            var time_room = (actual_hour - creation_hour); // Difference in milliseconds.
+
+            console.log("creation_hour",creation_hour.getTime());
+            var time_room = (actual_hour.getTime() - creation_hour.getTime()); // Difference in milliseconds.
             //tiempo en milisegundos
             var time = parseInt((time_room) / 1000);
             //
@@ -133,10 +138,15 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                 , seconds = parseInt((time_room / 1000) % 60)
                 , minutes = parseInt((time_room / (1000 * 60)) % 60)
                 , hours = parseInt((time_room / (1000 * 60 * 60)) % 24);
-
+            //verifica la cantidad de dias
+            var days = Math.round(time_room/one_day);
+            console.log("days",days);
+            console.log("hour",hours);
+            console.log("minutes",minutes);
             hours = (hours < 10) ? "0" + hours : hours;
-            minutes = (minutes < 10) ? "0" + minutes : minutes;
-            seconds = (seconds < 10) ? "0" + seconds : seconds;
+            hours = (days>0) ? 24*days : 0 ;
+             minutes = (minutes < 10) ? "0" + minutes : minutes;
+             seconds = (seconds < 10) ? "0" + seconds : seconds;
 
             //Centesimas.innerHTML = ":" + milliseconds;
             // Segundos.innerHTML = ":" + seconds;
