@@ -557,7 +557,7 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
     //put the clock when started the service
 
     TableClockStart = screens.ActionButtonWidget.extend({
-        template: 'TableClockStart'
+        template: 'TableClockStart',
     });
 
     screens.define_action_button({
@@ -567,6 +567,49 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
             return this.pos.config.iface_floorplan;
         }
     });
+    //Stop the time
+    TableUpdateTimeStopButton = screens.ActionButtonWidget.extend({
+        template: 'TableUpdateTimeStopButton',
+        button_click : function(){
+            var order = this.pos.get_order(),
+                table = order.table;
+            console.log("localStorage1",localStorage);
+            if(Detener.innerHTML == "Detener") {
+                Detener.innerHTML = "Continuar";
+                localStorage.setItem("'stop-" + table.name + "'",new Date());
+            }else{
+                Detener.innerHTML = "Detener";
+                var stop_time_room = new Date(localStorage.getItem("'stop-" + table.name + "'"));
+                var time_room = new Date(localStorage.getItem("'" + table.name + "'"));
+                var actually_time = new Date();
+                console.log("stop_time",stop_time_room);
+                console.log("actually_time",actually_time);
+                var difference_time = actually_time-stop_time_room;
+                console.log("difference",actually_time-stop_time_room);
+                console.log("convert to time",new Date(difference_time));
+                localStorage.setItem("'"+table.name+"'",new Date(time_room+difference_time));
+                localStorage.removeItem("'stop-" + table.name + "'");
+                console.log("localStorage-review",localStorage);
+            }
+
+            //lo que se puede hacer es la diferencia de tiempo aumentarsela al tiempo base
+            //de manera que cuando reste con el tiempo actual va a estar disminuido ese tiempo
+
+
+            //no se lo resta directamente porq es tiempo base lo que se guarda
+            //y para hacer el calculo se lo resta con el tiempo actual al momento de
+            //calcular el tiempo
+            console.log("localStorage2",localStorage);
+        }
+    });
+    screens.define_action_button({
+        'name': 'time_stop',
+        'widget': TableUpdateTimeStopButton,
+        'condition': function () {
+            return this.pos.config.iface_floorplan;
+        }
+    });
+    //
 
     //TableAddCoupleButton
 

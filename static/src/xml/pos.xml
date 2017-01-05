@@ -22,4 +22,9 @@
         <div class="reloj" id="Minutos">:00</div>
       </div>
   </t>
+  <t t-name="TableUpdateTimeStopButton">
+    <div class='control-button' style="display: -webkit-inline-box;">
+        <div class="reloj" id="Detener">Detener</div>
+    </div>
+  </t>
 </templates>
