@@ -39,6 +39,11 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
 
         // Overwritten methods
         set_table: function (table) {
+            var create_hours;
+            var create_minutes;
+            var actuallydate ;
+            var actuallyMonth ;
+
             if ((this.change_table)) {
                     if (!table) { // no table ? go back to the floor plan, see ScreenSelector
                         this.set_order(null);
@@ -57,7 +62,15 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                             localStorage.setItem("'" + table.name + "'", change);
                             console.log("localstorageafter", localStorage);
                             var dates = new Date(localStorage.getItem("'" + table.name + "'"));
-                            clockStart.innerHTML = dates.getHours() + ':' + dates.getMinutes() + ' - ' + dates.getDate() + '/' + (dates.getMonth() + 1) + '/' + dates.getYear();
+
+                            create_hours = (dates.getHours() < 10) ? "0" + dates.getHours() : dates.getHours();
+                            create_minutes = (dates.getMinutes() < 10) ? "0" + dates.getMinutes() : dates.getMinutes();
+                            actuallydate = (dates.getDate()<10) ? "0"+dates.getDate() : dates.getDate();
+                            actuallyMonth = (dates.getMonth()+1<10) ? "0"+dates.getMonth()+1: dates.getMonth()+1;
+
+
+                            clockStart.innerHTML= create_hours + ':' + create_minutes + ' - ' + actuallydate + '/' + actuallyMonth + '/' + dates.getFullYear();
+
 
                             var change_couple = localStorage.getItem("'" + this.table.name + "-ParejaExtra'");
                             localStorage.removeItem("'" + this.table.name + "-ParejaExtra'");
@@ -111,10 +124,12 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                     localStorage.setItem("'" + tables.name + "'", order.creation_date);
                       date = new Date(localStorage.getItem("'" + tables.name + "'"));
 
-                    var create_hours = (date.getHours() < 10) ? "0" + date.getHours() : date.getHours();
-                    var create_minutes = (date.getMinutes() < 10) ? "0" + date.getMinutes() : date.getMinutes();
+                    create_hours = (date.getHours() < 10) ? "0" + date.getHours() : date.getHours();
+                    create_minutes = (date.getMinutes() < 10) ? "0" + date.getMinutes() : date.getMinutes();
+                    actuallydate = (date.getDate()<10) ? "0"+date.getDate() : date.getDate();
+                    actuallyMonth = ((date.getMonth()+1)<10) ? "0"+(date.getMonth()+1): date.getMonth()+1;
 
-                    clockStart.innerHTML= create_hours + ':' + create_minutes + ' - ' + date.getDate() + '/' + (date.getMonth()+1) + '/' + date.getYear();
+                    clockStart.innerHTML= create_hours + ':' + create_minutes + ' - ' + actuallydate + '/' + actuallyMonth + '/' + date.getFullYear();
 
                     this.change_color_of_table();
                     Minutos.innerHTML = ":00";
@@ -133,7 +148,7 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
 
             var creation_hour = new Date(localStorage.getItem("'" + table.name + "'"));// Start of 2010.
 
-            var time_room = (actual_hour.getTime() - creation_hour.getTime()); // Difference in milliseconds.
+            var time_room = (actual_hour - creation_hour); // Difference in milliseconds.
             //tiempo en milisegundos
             var time = parseInt((time_room) / 1000);
             //
@@ -143,9 +158,12 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                 , minutes = parseInt((time_room / (1000 * 60)) % 60)
                 , hours = parseInt((time_room / (1000 * 60 * 60)) % 24);
             //verifica la cantidad de dias
-            var days = Math.round(time_room/one_day);
+            //console.log("days",days);
+            console.log("hours",hours);
+            console.log("minutes",minutes);
+             var days = Math.round(time_room/one_day);
+            hours = (days>0) ? (24*days)+hours : 0 ;
             hours = (hours < 10) ? "0" + hours : hours;
-            hours = (days>0) ? 24*days : 0 ;
              minutes = (minutes < 10) ? "0" + minutes : minutes;
              seconds = (seconds < 10) ? "0" + seconds : seconds;
 
@@ -263,7 +281,6 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
             var modifyQuantityProduct = 0;
             var modifyQuantityProduct_new = 0;
             var product;
-            console.log("this.previous_order",this.previous_order);
             if(this.previous_order)
             {
                 for (product in list_products) {
