@@ -45,7 +45,7 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
             var create_minutes;
             var actuallydate ;
             var actuallyMonth ;
-
+            console.log("actualice");
             if ((this.change_table)) {
                     if (!table) { // no table ? go back to the floor plan, see ScreenSelector
                         this.set_order(null);
@@ -72,7 +72,7 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                             actuallydate = (dates.getDate()<10) ? "0"+dates.getDate() : dates.getDate();
                             actuallyMonth = (dates.getMonth()+1<10) ? "0"+dates.getMonth()+1: dates.getMonth()+1;
 
-
+                            console.log("clockStart1");
                             clockStart.innerHTML= create_hours + ':' + create_minutes + ' - ' + actuallydate + '/' + actuallyMonth + '/' + dates.getFullYear();
 
 
@@ -117,8 +117,15 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                 if (orders.length) {
                     this.set_order(orders[0]); // and go to the first one ...
 
-                     date = new Date(localStorage.getItem("'" + table.name + "'"));
-                    clockStart.innerHTML= date.getHours() + ':' + date.getMinutes() + ' - ' + date.getDate() + '/' + (date.getMonth()+1) + '/' + date.getYear();
+                     dates = new Date(localStorage.getItem("'" + table.name + "'"));
+
+                    create_hours = (dates.getHours() < 10) ? "0" + dates.getHours() : dates.getHours();
+                    create_minutes = (dates.getMinutes() < 10) ? "0" + dates.getMinutes() : dates.getMinutes();
+                    actuallydate = (dates.getDate()<10) ? "0"+dates.getDate() : dates.getDate();
+                    actuallyMonth = (dates.getMonth()+1<10) ? "0"+dates.getMonth()+1: dates.getMonth()+1;
+
+                    console.log("clockStart2");
+                    clockStart.innerHTML= create_hours + ':' + create_minutes + ' - ' + actuallydate + '/' + actuallyMonth + '/' + dates.getFullYear();
 
                 } else {
                     this.add_new_order();  // or create a new order with the current table
@@ -133,6 +140,8 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                     actuallydate = (date.getDate()<10) ? "0"+date.getDate() : date.getDate();
                     actuallyMonth = ((date.getMonth()+1)<10) ? "0"+(date.getMonth()+1): date.getMonth()+1;
 
+
+                    console.log("clockStart3");
                     clockStart.innerHTML= create_hours + ':' + create_minutes + ' - ' + actuallydate + '/' + actuallyMonth + '/' + date.getFullYear();
 
                     this.change_color_of_table();
