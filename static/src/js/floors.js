@@ -382,8 +382,11 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
 
             }
             else {
+
                     this.add_extra_product_to_current_order(extra_product_qty, orderExtra);
+
             }
+
         },
         modify_extra_product_to_current_order : function(extra_product_qty,orderExtra){
 
