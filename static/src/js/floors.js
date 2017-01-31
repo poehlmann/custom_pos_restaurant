@@ -45,7 +45,6 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
             var create_minutes;
             var actuallydate ;
             var actuallyMonth ;
-            console.log("actualice");
             if ((this.change_table)) {
                     if (!table) { // no table ? go back to the floor plan, see ScreenSelector
                         this.set_order(null);
@@ -63,16 +62,12 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                             var change = localStorage.getItem("'" + this.table.name + "'");
                             localStorage.removeItem("'" + this.table.name + "'");
                             localStorage.setItem("'" + table.name + "'", change);
-                            console.log("localstorageafter", localStorage);
-
                             var dates = new Date(localStorage.getItem("'" + table.name + "'"));
 
                             create_hours = (dates.getHours() < 10) ? "0" + dates.getHours() : dates.getHours();
                             create_minutes = (dates.getMinutes() < 10) ? "0" + dates.getMinutes() : dates.getMinutes();
                             actuallydate = (dates.getDate()<10) ? "0"+dates.getDate() : dates.getDate();
                             actuallyMonth = (dates.getMonth()+1<10) ? "0"+dates.getMonth()+1: dates.getMonth()+1;
-
-                            console.log("clockStart1");
                             clockStart.innerHTML= create_hours + ':' + create_minutes + ' - ' + actuallydate + '/' + actuallyMonth + '/' + dates.getFullYear();
 
 
@@ -124,7 +119,6 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                     actuallydate = (dates.getDate()<10) ? "0"+dates.getDate() : dates.getDate();
                     actuallyMonth = (dates.getMonth()+1<10) ? "0"+dates.getMonth()+1: dates.getMonth()+1;
 
-                    console.log("clockStart2");
                     clockStart.innerHTML= create_hours + ':' + create_minutes + ' - ' + actuallydate + '/' + actuallyMonth + '/' + dates.getFullYear();
 
                 } else {
@@ -141,7 +135,6 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                     actuallyMonth = ((date.getMonth()+1)<10) ? "0"+(date.getMonth()+1): date.getMonth()+1;
 
 
-                    console.log("clockStart3");
                     clockStart.innerHTML= create_hours + ':' + create_minutes + ' - ' + actuallydate + '/' + actuallyMonth + '/' + date.getFullYear();
 
                     this.change_color_of_table();
@@ -170,18 +163,14 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                 , seconds = parseInt((time_room / 1000) % 60)
                 , minutes = parseInt((time_room / (1000 * 60)) % 60)
                 , hours = parseInt((time_room / (1000 * 60 * 60)) % 24);
-            //verifica la cantidad de dias
-            //console.log("days",days);
-            console.log("hours",hours);
-            console.log("minutes",minutes);
+
+
              var days = Math.round(time_room/one_day);
             hours = (days>0) ? (24*days)+hours : 0 ;
             hours = (hours < 10) ? "0" + hours : hours;
              minutes = (minutes < 10) ? "0" + minutes : minutes;
              seconds = (seconds < 10) ? "0" + seconds : seconds;
 
-            //Centesimas.innerHTML = ":" + milliseconds;
-            // Segundos.innerHTML = ":" + seconds;
             Minutos.innerHTML = ":" + minutes;
             Horas.innerHTML = hours;
 
@@ -264,7 +253,7 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                 for (product in list_products) {
                     if (list_products[product].product.id == this.previous_order_couple) {
                         quantity = list_products[product].quantity;
-                        console.log("1",quantity);
+
                     }
                 }
                 if (quantity == extra_product_qty_couple) {
@@ -275,28 +264,25 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                         if (list_products[product].product.id == extra_product_id_for_couple) {
                             orderExtraExtracouple = list_products[product];
                             quantity_previous_couple = list_products[product].quantity;
-                            console.log("2",quantity_previous_couple);
+
                         }
                     }
 
                     if (orderExtraExtracouple) {
-                        console.log("orderExtraExtracouple",orderExtraExtracouple);
-                        console.log("quantity/this.quantity_of_couples",quantity/this.quantity_of_couples);
+
                         if ((quantity/this.quantity_of_couples) == extra_product_qty_couple) {
                             return false;
                         } else {
 
-                            console.log("quantity",quantity);
-                            console.log("this.quantity_of_couples",this.quantity_of_couples);
+
                             extra_product_qty_couple = (extra_product_qty_couple - (quantity/this.quantity_of_couples))*this.quantity_of_couples;
                             modifyQuantityCouple = extra_product_qty_couple + quantity;
-                            console.log("3",modifyQuantityCouple);
-                            console.log("orderExtra",orderExtraExtracouple);
+
                             this.modify_extra_product_to_current_order(modifyQuantityCouple,orderExtraExtracouple);
                         }
                     }else{
                         extra_product_qty_couple = Math.abs(quantity - extra_product_qty_couple) * this.quantity_of_couples;
-                        console.log("4",extra_product_qty_couple);
+
                         this.add_extra_product_couple_to_current_order(extra_product_qty_couple);
                     }
                 }
@@ -396,14 +382,14 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
 
             }
             else {
+
                     this.add_extra_product_to_current_order(extra_product_qty, orderExtra);
+
             }
-            //this.previous_order=false;
-            //console.log("lo borro",this.previous_order);
+
         },
         modify_extra_product_to_current_order : function(extra_product_qty,orderExtra){
-            console.log("extra_product_qty",extra_product_qty);
-            console.log("orderExtra",orderExtra);
+
             orderExtra.set_quantity(extra_product_qty);
         },
         get_quantity_of_couples : function(){
@@ -582,7 +568,6 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
         button_click : function(){
             var order = this.pos.get_order(),
                 table = order.table;
-            console.log("localStorage1",localStorage);
             if(Detener.innerHTML == "Detener") {
                 Detener.innerHTML = "Continuar";
                 localStorage.setItem("'stop-" + table.name + "'",new Date());
@@ -591,14 +576,10 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                 var stop_time_room = new Date(localStorage.getItem("'stop-" + table.name + "'"));
                 var time_room = new Date(localStorage.getItem("'" + table.name + "'"));
                 var actually_time = new Date();
-                console.log("stop_time",stop_time_room);
-                console.log("actually_time",actually_time);
                 var difference_time = actually_time-stop_time_room;
-                console.log("difference",actually_time-stop_time_room);
-                console.log("convert to time",new Date(difference_time));
-                localStorage.setItem("'"+table.name+"'",new Date(time_room+difference_time));
+                time_room.setTime(time_room.getTime() + difference_time);
+                localStorage.setItem("'"+table.name+"'",new Date(time_room));
                 localStorage.removeItem("'stop-" + table.name + "'");
-                console.log("localStorage-review",localStorage);
             }
 
             //lo que se puede hacer es la diferencia de tiempo aumentarsela al tiempo base
@@ -608,7 +589,6 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
             //no se lo resta directamente porq es tiempo base lo que se guarda
             //y para hacer el calculo se lo resta con el tiempo actual al momento de
             //calcular el tiempo
-            console.log("localStorage2",localStorage);
         }
     });
     screens.define_action_button({
