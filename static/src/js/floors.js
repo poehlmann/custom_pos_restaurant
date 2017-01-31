@@ -19,6 +19,9 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                     if (localStorage.getItem("'" + tables[i].name + "'")) {
                         tables[i].color = "rgb(235, 109, 109)";
                     }
+                    if (localStorage.getItem ("'stop-"  + tables[i].name + "'")){
+                        tables[i].color = "rgb(255, 243, 72)";
+                    }
                     floor.tables.push(tables[i]);
                     tables[i].floor = floor;
 
@@ -50,7 +53,7 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                         this.set_order(null);
                     } else {
                         var room_empty;
-                        if(table.color !== "rgb(235, 109, 109)"){
+                        if((table.color !== "rgb(235, 109, 109)") || (table.color !== "rgb(255, 243, 72)")){
                             room_empty = true;
                         }else{
                             room_empty=false;
@@ -101,12 +104,16 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                 this.set_order(null);
             }
             else {
+                // table ? load the associated orders  ...
+                this.table = table;
                 if (this.change_table) {
                     this.previous_order_id.table = table;
                     this.change_table = false;
                 }
-                // table ? load the associated orders  ...
-                this.table = table;
+                if (localStorage.getItem ("'stop-"  + this.table.name + "'")){
+                    Detener.innerHTML = "Continuar";
+                    this.table.color = "rgb(255, 243, 72)";
+                }
                 var date;
                 var orders = this.get_order_list();
                 if (orders.length) {
@@ -178,11 +185,12 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
         change_color_of_table: function () {
             var order = this.get_order();
             var table = order.table;
-            if (order.get_orderlines().length > 0) {
+            if (order.get_orderlines().length > 0) { // is not working
                 table.color = "rgb(235, 109, 109)"; // Fixme: client side change doesn't storage in the database
             } else {
                 table.color = "rgb(130, 233, 171)";
             }
+
         },
         add_new_order: function () {
             _super_posmodel.add_new_order.call(this);
@@ -460,6 +468,7 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                 this.table.color = _.escape(color);
                 this.$el.css({'background': this.table.color});
             }
+
         }
     });
 
@@ -477,6 +486,9 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                 table.color = "rgb(235, 109, 109)";
             } else {
                 table.color = "rgb(130, 233, 171)";
+            }
+            if(localStorage.getItem("'stop-"+table.name+"'")){
+                table.color = "rgb(255, 243, 72)";
             }
         }
     });
@@ -581,14 +593,6 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                 localStorage.setItem("'"+table.name+"'",new Date(time_room));
                 localStorage.removeItem("'stop-" + table.name + "'");
             }
-
-            //lo que se puede hacer es la diferencia de tiempo aumentarsela al tiempo base
-            //de manera que cuando reste con el tiempo actual va a estar disminuido ese tiempo
-
-
-            //no se lo resta directamente porq es tiempo base lo que se guarda
-            //y para hacer el calculo se lo resta con el tiempo actual al momento de
-            //calcular el tiempo
         }
     });
     screens.define_action_button({
