@@ -34,6 +34,8 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
             this.change_table = false;
             this.previous_order =false;
             this.previous_order_id = false;
+            this.previous_order_couple =false;
+            this.quantity_of_couples = 0;
             return _super_posmodel.initialize.call(this, session, attributes);
         },
 
@@ -56,11 +58,13 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                         }
                         if(room_empty) {
                             this.table.color = "rgb(130,233,171)";
+
                             //hacer cambios con la anterior mesa para ponerlas a la nueva mesa
                             var change = localStorage.getItem("'" + this.table.name + "'");
                             localStorage.removeItem("'" + this.table.name + "'");
                             localStorage.setItem("'" + table.name + "'", change);
                             console.log("localstorageafter", localStorage);
+
                             var dates = new Date(localStorage.getItem("'" + table.name + "'"));
 
                             create_hours = (dates.getHours() < 10) ? "0" + dates.getHours() : dates.getHours();
@@ -230,37 +234,88 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
 
             var extra_minutes_couple = Math.abs(minutes_apart - wait_time_couple);
             var extra_product_qty_couple = Math.ceil(extra_minutes_couple / extra_time_couple);
-            var extra_product_id_for_couple = this.get_additional_couple_product_id_for_table();
+
 
             var orderExtracouple;
+            var orderExtraExtracouple;
 
-            //default_couple_product_id
+            //pareja extra
             var default_product_id = this.get_default_couple_product_id_for_table();
+            //hora extra pareja extra
+            var extra_product_id_for_couple = this.get_additional_couple_product_id_for_table();
             var quantity = 0;
             //validar el update order
             var list_products = order.orderlines.models;
             var quantity_default_couple=0;
             var modifyQuantityCouple = 0;
-            for (var product in list_products) {
-                if (list_products[product].product.id == default_product_id) {
-                    quantity_default_couple = list_products[product].quantity;
+
+            //horas extras de la habitacion con parejas extras de una anterior orden
+            if(this.previous_order_couple)
+            {
+                for (product in list_products) {
+                    if (list_products[product].product.id == this.previous_order_couple) {
+                        quantity = list_products[product].quantity;
+                        console.log("1",quantity);
+                    }
                 }
-                if (list_products[product].product.id == extra_product_id_for_couple) {
-                    orderExtracouple = list_products[product];
-                    quantity += list_products[product].quantity;
-                }
-            }
-            if (orderExtracouple) {
-                if ((quantity/quantity_default_couple) == extra_product_qty_couple) {
+                if (quantity == extra_product_qty_couple) {
                     return false;
-                } else {
-                    extra_product_qty_couple = (extra_product_qty_couple - (quantity/quantity_default_couple))*quantity_default_couple;
-                    modifyQuantityCouple = extra_product_qty_couple + quantity
-                    this.modify_extra_product_to_current_order(modifyQuantityCouple,orderExtracouple);
+                }else{
+                    var quantity_previous_couple=0;
+                    for (var product in list_products) {
+                        if (list_products[product].product.id == extra_product_id_for_couple) {
+                            orderExtraExtracouple = list_products[product];
+                            quantity_previous_couple = list_products[product].quantity;
+                            console.log("2",quantity_previous_couple);
+                        }
+                    }
+
+                    if (orderExtraExtracouple) {
+                        console.log("orderExtraExtracouple",orderExtraExtracouple);
+                        console.log("quantity/this.quantity_of_couples",quantity/this.quantity_of_couples);
+                        if ((quantity/this.quantity_of_couples) == extra_product_qty_couple) {
+                            return false;
+                        } else {
+
+                            console.log("quantity",quantity);
+                            console.log("this.quantity_of_couples",this.quantity_of_couples);
+                            extra_product_qty_couple = (extra_product_qty_couple - (quantity/this.quantity_of_couples))*this.quantity_of_couples;
+                            modifyQuantityCouple = extra_product_qty_couple + quantity;
+                            console.log("3",modifyQuantityCouple);
+                            console.log("orderExtra",orderExtraExtracouple);
+                            this.modify_extra_product_to_current_order(modifyQuantityCouple,orderExtraExtracouple);
+                        }
+                    }else{
+                        extra_product_qty_couple = Math.abs(quantity - extra_product_qty_couple) * this.quantity_of_couples;
+                        console.log("4",extra_product_qty_couple);
+                        this.add_extra_product_couple_to_current_order(extra_product_qty_couple);
+                    }
                 }
-            }else{
-                extra_product_qty_couple = extra_product_qty_couple * quantity_default_couple;
-                this.add_extra_product_couple_to_current_order(extra_product_qty_couple);
+
+            }
+            else {
+                //calcular el producto extra de pareja actual de la habitacion
+                for (var product in list_products) {
+                    if (list_products[product].product.id == default_product_id) {
+                        quantity_default_couple = list_products[product].quantity;
+                    }
+                    if (list_products[product].product.id == extra_product_id_for_couple) {
+                        orderExtracouple = list_products[product];
+                        quantity += list_products[product].quantity;
+                    }
+                }
+                if (orderExtracouple) {
+                    if ((quantity / quantity_default_couple) == extra_product_qty_couple) {
+                        return false;
+                    } else {
+                        extra_product_qty_couple = (extra_product_qty_couple - (quantity / quantity_default_couple)) * quantity_default_couple;
+                        modifyQuantityCouple = extra_product_qty_couple + quantity;
+                        this.modify_extra_product_to_current_order(modifyQuantityCouple, orderExtracouple);
+                    }
+                } else {
+                    extra_product_qty_couple = extra_product_qty_couple * quantity_default_couple;
+                    this.add_extra_product_couple_to_current_order(extra_product_qty_couple);
+                }
             }
         },
         calculate_extra_product: function (minutes_apart) {
@@ -275,19 +330,20 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
             var extra_product_id = this.get_extra_product_id_for_table();
 
             var orderExtra;
+            var orderExtra_couple;
+            var orderExtra_previous_order;
             //validar el update order
             var list_products = order.orderlines.models;
             var quantity = 0;
             var modifyQuantityProduct = 0;
             var modifyQuantityProduct_new = 0;
             var product;
+            //horas extras de la habitacion de una anterior orden
             if(this.previous_order)
             {
                 for (product in list_products) {
                     if (list_products[product].product.id == this.previous_order) {
-                        //orderExtra = list_products[product];
-                        quantity += list_products[product].quantity;
-                        console.log("quantitty", quantity);
+                        quantity = list_products[product].quantity;
                     }
                 }
                 if (quantity == extra_product_qty) {
@@ -297,13 +353,12 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                     {
                         var quantity_new = 0;
                         if (list_products[product].product.id == extra_product_id) {
-                            orderExtra = list_products[product];
-                            quantity_new += list_products[product].quantity;
+                            orderExtra_previous_order = list_products[product];
+                            quantity_new = list_products[product].quantity;
                         }
                     }
-                    if (orderExtra) {
+                    if (orderExtra_previous_order) {
                         modifyQuantityProduct_new = extra_product_qty - quantity - quantity_new;
-                        console.log("modifyQuantityProduct_new", modifyQuantityProduct_new);
                     } else {
                         modifyQuantityProduct_new = extra_product_qty - quantity;
                     }
@@ -311,6 +366,7 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
 
             }
 
+            //calculo de la orden de la mesa actual
             for (product in list_products) {
                 if (list_products[product].product.id == extra_product_id) {
                     orderExtra = list_products[product];
@@ -326,17 +382,33 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                     modifyQuantityProduct = extra_product_qty + quantity;
                     this.modify_extra_product_to_current_order(modifyQuantityProduct,orderExtra);
                 }
-            }else {
-                if(this.previous_order)
-                    this.add_extra_product_to_current_order(modifyQuantityProduct_new,orderExtra);
-                else
-                    this.add_extra_product_to_current_order(extra_product_qty,orderExtra);
+            }else if(this.previous_order){
+                    this.add_extra_product_to_current_order(modifyQuantityProduct_new,orderExtra_previous_order);
+
+            }
+            else {
+                    this.add_extra_product_to_current_order(extra_product_qty, orderExtra);
             }
             //this.previous_order=false;
             //console.log("lo borro",this.previous_order);
         },
         modify_extra_product_to_current_order : function(extra_product_qty,orderExtra){
+            console.log("extra_product_qty",extra_product_qty);
+            console.log("orderExtra",orderExtra);
             orderExtra.set_quantity(extra_product_qty);
+        },
+        get_quantity_of_couples : function(){
+            var order = this.get_order();
+            var default_couple = this.get_default_couple_product_id_for_table();
+            var list_products = order.orderlines.models;
+            var quantity = 0;
+            var product;
+            for (product in list_products) {
+                if (list_products[product].product.id == default_couple) {
+                    quantity = list_products[product].quantity;
+                }
+            }
+            return quantity;
         },
         get_additional_couple_product_id_for_table: function () {
             var order = this.get_order(),
@@ -457,8 +529,6 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
             }
         }
     });
-
-    //var intervalExtraHour = setInterval( this.pos.button_click(), 3000);
 
     screens.define_action_button({
         'name': 'update_order_time',
