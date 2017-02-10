@@ -7,14 +7,11 @@
       </div>
   </t>
   <t t-name="TableAddCoupleButton">
-     <div class='control-button'>
-         Agregar Pareja
-     </div>
+         <!--Agregar Pareja-->
+         <button class="control-button add_couple">Agregar Pareja</button>
   </t>
   <t t-name="TableUpdateOrderButton">
-      <div class='control-button'>
-         Calcular Total
-      </div>
+      <button class="control-button get_total" >Calcular Total</button>
   </t>
   <t t-name="TableUpdateTimeButton">
       <div class='control-button' style="display: -webkit-inline-box;">
@@ -23,8 +20,6 @@
       </div>
   </t>
   <t t-name="TableUpdateTimeStopButton">
-    <div class='control-button' style="display: -webkit-inline-box;">
-        <div class="reloj" id="Detener">Detener</div>
-    </div>
+      <button class="control-button reloj" id="Detener">Detener</button>
   </t>
 </templates>

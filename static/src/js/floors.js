@@ -16,11 +16,13 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                 self.tables_by_id[tables[i].id] = tables[i];
                 var floor = self.floors_by_id[tables[i].floor_id[0]];
                 if (floor) {
+                    //cambiar el color de la mesa a rojo si esta con una orden
                     if (localStorage.getItem("'" + tables[i].name + "'")) {
-                        tables[i].color = "rgb(235, 109, 109)";
+                        tables[i].color = "red";
                     }
+                    //cambiar el color de la mesa si esta el tiempo detenido
                     if (localStorage.getItem("'stop-" + tables[i].name + "'")) {
-                        tables[i].color = "rgb(255, 243, 72)";
+                        tables[i].color = "yellow";
                     }
                     floor.tables.push(tables[i]);
                     tables[i].floor = floor;
@@ -44,8 +46,8 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
 
         //detalle de la entrada y salida de las habitaciones
         in_out_room: function (in_out) {
-            console.log("in_out",in_out);
-            var orderlines_test;
+            console.log("in_out", in_out);
+            var orderlines;
             var line;
             var default_product_id;
             //agregar nota de hora de ingreso al producto
@@ -53,37 +55,70 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
             if (default_product_id) {
                 line = this.get_order();
             }
-            orderlines_test = line.get_orderlines();
-            if (orderlines_test) {
+            orderlines = line.get_orderlines();
+            if (orderlines) {
                 if (in_out == "entrada") {
-                    orderlines_test[0].set_note("hora de entrada:" + this.show_date());
-                    console.log("nota:", orderlines_test[0].get_note());
+                    // console.log("orderlines[0]",orderlines[0]);
+                    ////////////////
+                    var prueba_name = orderlines[0].product.display_name;
+                    console.log("prueba_name", prueba_name);
+                    prueba_name += " hora de entrada:" + this.show_date();
+                    orderlines[0].product.display_name = prueba_name;
+                    ////////////////
+                    // orderlines[0].set_note("hora de entrada:" + this.show_date());
+                    // console.log("nota:", orderlines[0].get_note());
                 }
-                else if (in_out == "salida"){
+                else if (in_out == "salida") {
                     //agregar nota de hora de salida al producto
-                    var nota = orderlines_test[0].get_note();
-                    console.log("nota", nota);
-                    orderlines_test[0].set_note(nota + "\t\t hora de salida:" + this.show_date());
-                    console.log("hora de salida:", orderlines_test[0].get_note());
+                    // var nota = orderlines[0].get_note();
+                    // console.log("nota", nota);
+                    //orderlines[0].set_note(nota + "</br> hora de salida:" + this.show_date());
+                    /////////////////////////////
+                    var prueba_name = orderlines[0].product.display_name;
+                    console.log("prueba_name", prueba_name);
+                    prueba_name += " </br> hora de salida:" + this.show_date();
+                    orderlines[0].product.display_name = prueba_name;
+                    ///////////////////////////////
+                    //console.log("hora de salida:", orderlines[0].get_note());
                 }
             }
         },
 
+        change_rooms_on_cache: function (before_table, after_table) {
+            console.log("before_table", localStorage);
+            var change = localStorage.getItem("'" + before_table.name + "'");
+            localStorage.removeItem("'" + before_table.name + "'");
+            localStorage.setItem("'" + after_table.name + "'", change);
+            var change_couple = localStorage.getItem("'" + before_table.name + "-ParejaExtra'");
+            localStorage.removeItem("'" + before_table.name + "-ParejaExtra'");
+            localStorage.setItem("'" + after_table.name + "-ParejaExtra'", change_couple);
+            console.log("after_table", localStorage);
+        },
+
         // Overwritten methods
         set_table: function (table) {
+            console.log("this.change_table", this.change_table);
             if ((this.change_table)) {
+
                 //cuando se quiere cambiar una orden de habitacion
                 if (!table) { // no table ? go back to the floor plan, see ScreenSelector
                     this.set_order(null);
                 } else {
                     //preguntamos si las habitaciones estan ocupadas o estan detenidas
                     var room_empty;
-                    room_empty = !!((table.color !== "rgb(235, 109, 109)") || (table.color !== "rgb(255, 243, 72)"));
+                    room_empty = !!((table.color !== "red") && (table.color !== "yellow"));
+
+                    console.log("room_empty", room_empty);
 
                     if (room_empty) {
-                        this.table.color = "rgb(130,233,171)";
+                        this.table.color = "green";
                         //hacer cambios con la anterior mesa para ponerlas a la nueva mesa
                         // "table" es la nueva mesa - "this.table" es la mesa anterior
+                        clockStart.innerHTML = this.show_date(localStorage.getItem("'" + table.name + "'"));
+                        //this.change_rooms_on_cache(this.table,table);
+
+                        /**********************************************/
+                        console.log("before_table", localStorage);
                         var change = localStorage.getItem("'" + this.table.name + "'");
                         localStorage.removeItem("'" + this.table.name + "'");
                         localStorage.setItem("'" + table.name + "'", change);
@@ -91,6 +126,9 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                         var change_couple = localStorage.getItem("'" + this.table.name + "-ParejaExtra'");
                         localStorage.removeItem("'" + this.table.name + "-ParejaExtra'");
                         localStorage.setItem("'" + table.name + "-ParejaExtra'", change_couple);
+                        console.log("after_table", localStorage);
+                        /**********************************************/
+
                         this.table = table;
                         var orderss = this.get_order_list();
                         if (orderss.length) {
@@ -107,8 +145,10 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                         return;
                     }
                 }
+                return;
             }
-            else{
+            else {
+                console.log("arguments", arguments);
                 _super_posmodel.set_table.apply(this, arguments);
             }
 
@@ -127,13 +167,14 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                 if (localStorage.getItem("'stop-" + this.table.name + "'")) {
                     //en el caso de que se haya detenido el tiempo, cambia la interface para mostrar amarillo y cambiar la orden
                     Detener.innerHTML = "Continuar";
-                    this.table.color = "rgb(255, 243, 72)";
+                    this.table.color = "yellow";
                 }
-                else{
+                else {
                     Detener.innerHTML = "Detener";
                 }
                 var orders = this.get_order_list();
                 if (orders.length) {
+                    console.log("agregando fuera del change table???");
                     //si existen orden anteriormente en la habitacion obtiene la primera que obtuvo
                     this.set_order(orders[0]); // and go to the first one ...
                     clockStart.innerHTML = this.show_date(localStorage.getItem("'" + table.name + "'"));
@@ -162,7 +203,7 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
 
             console.log("dates", dates);
 
-            date =  (typeof(dates) !== "undefined" && dates !== null) ? new Date(dates) : new Date();
+            date = (typeof(dates) !== "undefined" && dates !== null) ? new Date(dates) : new Date();
 
             var create_hours = (date.getHours() < 10) ? "0" + date.getHours() : date.getHours();
             var create_minutes = (date.getMinutes() < 10) ? "0" + date.getMinutes() : date.getMinutes();
@@ -207,9 +248,9 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
             var order = this.get_order();
             var table = order.table;
             if (order.get_orderlines().length > 0) { // is not working
-                table.color = "rgb(235, 109, 109)"; // Fixme: client side change doesn't storage in the database
+                table.color = "red"; // Fixme: client side change doesn't storage in the database
             } else {
-                table.color = "rgb(130, 233, 171)";
+                table.color = "green";
             }
 
         },
@@ -224,7 +265,7 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                     this.set_order(order_list[index] || order_list[order_list.length - 1]);
                 } else {
                     var table = this.table;
-                    table.color = "rgb(130, 233, 171)";
+                    table.color = "green";
                     var deleteItem = table.name;
                     localStorage.removeItem("'" + deleteItem + "'");
                     localStorage.removeItem("'" + table.name + "-ParejaExtra'");
@@ -480,7 +521,7 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
     floors.TableWidget = floors.TableWidget.include({
         // Overwritten methods
         set_table_color: function (color) {
-            if (color === "rgb(235, 109, 109)") { // Not allow to change to red
+            if (color === "red") { // Not allow to change to red
             } else {
                 this.table.color = _.escape(color);
                 this.$el.css({'background': this.table.color});
@@ -500,12 +541,12 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
             var orderlines = order.get_orderlines();
             var table = order.table;
             if (orderlines.length > 0) {
-                table.color = "rgb(235, 109, 109)";
+                table.color = "red";
             } else {
-                table.color = "rgb(130, 233, 171)";
+                table.color = "green";
             }
             if (localStorage.getItem("'stop-" + table.name + "'")) {
-                table.color = "rgb(255, 243, 72)";
+                table.color = "yellow";
             }
         }
     });
@@ -520,11 +561,11 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
             }
         },
         button_click: function () {
-            if(Detener.innerHTML != "Continuar") {
+            if (Detener.innerHTML != "Continuar") {
                 this.pos.updateTimer();
                 this.updateTimer_Order();
             }
-            else{
+            else {
                 alert("Por favor, continue el tiempo detenido para calcular el tiempo total");
             }
         },
