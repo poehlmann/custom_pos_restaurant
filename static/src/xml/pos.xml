@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
     <t t-name="TableClockStart">
-      <div class='control-button' style="width:100%; display: -webkit-inline-box;">
+      <div class='control-button' style="width:100%; display: none;">
           <label>Entrada:</label>
         <div class="clock" id="clockStart"></div>
       </div>

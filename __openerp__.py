@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'pos Restaurant Erratic',
+    'name': 'pos Motel',
     'version': '1.0',
     'category': 'Point of Sale',
     'sequence': 6,
