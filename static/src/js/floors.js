@@ -108,6 +108,7 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                         //this.change_rooms_on_cache(this.table,table);
                         localStorage.removeItem("'stop-" + this.table.name + "'");
                         Detener.innerHTML = "Detener";
+
                         this.previous_order_id.table = table;
                         this.table = table;
                         var orderss = this.get_order_list();
@@ -117,6 +118,7 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                             this.in_out_room("salida");
                             this.updateTimer();
                             this.reset_clock();
+                            Detener.innerHTML = "Detener";
                         } else {
                             this.reset_clock();
                         }
@@ -235,11 +237,18 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                 if ((reason === 'abandon' || removed_order.temporary) && order_list.length > 0) {
                     this.set_order(order_list[index] || order_list[order_list.length - 1]);
                 } else {
+                    console.log("removed_order",removed_order);
+                    console.log("index",index);
+                    console.log("reason",reason);
                     var table = this.table;
                     table.color = "green";
                     var deleteItem = table.name;
-                    localStorage.removeItem("'" + deleteItem + "'");
-                    localStorage.removeItem("'" + table.name + "-ParejaExtra'");
+                    console.log("removed_order.creation_date",removed_order.creation_date);
+                    console.log("localStorage.getItem( + deleteItem + )",localStorage.getItem("'" + deleteItem + "'"));
+                    if(removed_order.creation_date == localStorage.getItem("'" + deleteItem + "'")) {
+                        localStorage.removeItem("'" + deleteItem + "'");
+                        localStorage.removeItem("'" + table.name + "-ParejaExtra'");
+                    }
                     // back to the floor plan
                     this.set_table(null);
                 }
@@ -547,12 +556,15 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                 table = order.table,
                 creation_date = new Date(localStorage.getItem("'" + table.name + "'")),
                 now = new Date();
+            // console.log("selected_orderline",order.get_selected_orderline());
+            console.log("order.orderlines.models",order.orderlines.models[0].product.display_name);
+            console.log("table",table.default_product_id[1]);
             var difference = Math.abs(now - creation_date);
             var minutes_apart = Math.floor((difference / 1000) / 60);
-            var orders = this.pos.get_order_list();
+            //var orders = this.pos.get_order_list();
 
             console.log("localStorage",localStorage);
-            // if(orders[0].orderlines.models[0].product.display_name == table.name){
+             if(order.orderlines.models[0].product.display_name == table.name){
                 if (minutes_apart > table.wait_time) {
                     this.pos.calculate_extra_product(minutes_apart);
                 }
@@ -573,7 +585,9 @@ odoo.define('custom_pos_restaurant.floors', function (require) {
                         this.pos.calculate_extra_product_couple(minutes_apart_x_couple);
                     }
                 }
-            // }
+             }else{
+                 alert("no se puede calcular el tiempo de esta habitacion");
+             }
         }
     });
 
